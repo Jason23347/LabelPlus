@@ -61,6 +61,6 @@ void Gui::frame(Qt3DCore::QEntity *rootEntity)
     if (show_test_window)
     {
         ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver);
-        ImGui::ShowTestWindow(&show_test_window);
+        ImGui::ShowTestWindow();
     }
 }
