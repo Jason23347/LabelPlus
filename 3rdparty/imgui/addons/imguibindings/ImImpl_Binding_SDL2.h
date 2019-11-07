@@ -95,7 +95,7 @@ static void InitImGui(const ImImpl_InitParams* pOptionalInitParams=NULL)	{
     io.KeyMap[ImGuiKey_Escape] = SDLK_ESCAPE;
     io.KeyMap[ImGuiKey_Space] = SDLK_SPACE;
 #   ifndef __EMSCRIPTEN__  // emscripten doesn't like it (and triggers a 'NewFrameSanityCheck' or something like that [Tested only with SDL2 binding])
-    io.KeyMap[ImGuiKey_KeyPadEnter] = SDLK_RETURN2;
+    // io.KeyMap[ImGuiKey_KeyPadEnter] = SDLK_RETURN2;
 #   endif
     io.KeyMap[ImGuiKey_A] = SDLK_a;
     io.KeyMap[ImGuiKey_C] = SDLK_c;
@@ -450,12 +450,12 @@ int ImImpl_Main(const ImImpl_InitParams* pOptionalInitParams,int argc, char** ar
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     InitImGui(pOptionalInitParams);
-    ImGuiIO& io = ImGui::GetIO();           
-    
+    ImGuiIO& io = ImGui::GetIO();
+
     InitGL();
     if (gImGuiPostInitGLCallback) gImGuiPostInitGLCallback();
     ResizeGL((int) io.DisplaySize.x,(int) io.DisplaySize.y);
-	
+
     gImGuiInverseFPSClampInsideImGui = pOptionalInitParams ? ((pOptionalInitParams->gFpsClampInsideImGui!=0) ? (1.0f/pOptionalInitParams->gFpsClampInsideImGui) : 1.0f) : -1.0f;
     gImGuiInverseFPSClampOutsideImGui = pOptionalInitParams ? ((pOptionalInitParams->gFpsClampOutsideImGui!=0) ? (1.0f/pOptionalInitParams->gFpsClampOutsideImGui) : 1.0f) : -1.0f;
     gImGuiDynamicFPSInsideImGui = pOptionalInitParams ? pOptionalInitParams->gFpsDynamicInsideImGui : false;

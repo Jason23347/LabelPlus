@@ -1,164 +1,164 @@
-/****************************************************************************
-**
-** Copyright (C) 2017 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of the examples of the Qt Toolkit.
-**
-** $QT_BEGIN_LICENSE:BSD$
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** BSD License Usage
-** Alternatively, you may use this file under the terms of the BSD license
-** as follows:
-**
-** "Redistribution and use in source and binary forms, with or without
-** modification, are permitted provided that the following conditions are
-** met:
-**   * Redistributions of source code must retain the above copyright
-**     notice, this list of conditions and the following disclaimer.
-**   * Redistributions in binary form must reproduce the above copyright
-**     notice, this list of conditions and the following disclaimer in
-**     the documentation and/or other materials provided with the
-**     distribution.
-**   * Neither the name of The Qt Company Ltd nor the names of its
-**     contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
-**
-**
-** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
-**
-** $QT_END_LICENSE$
-**
-****************************************************************************/
+#include <QtCore>
+#include <imgui.h>
 
-#include <QGuiApplication>
-#include <QSurfaceFormat>
-#include <QOpenGLContext>
-#include <QPropertyAnimation>
-#include <QEntity>
-#include <QTransform>
-#include <QCuboidMesh>
-#include <QTorusMesh>
-#include <QSphereMesh>
-#include <QPhongMaterial>
-#include <QObjectPicker>
-#include <QPickEvent>
 
-#include "imguimanager.h"
-#include "imguiqt3dwindow.h"
+static const char* styleFileName = "./myimgui.style";
+static const char* styleFileNamePersistent = "/persistent_folder/myimgui.style";   // Needed by Emscripten only
+
+
+void InitGL()	// Mandatory
+{
+    // if (!myImageTextureId2) myImageTextureId2 = ImImpl_LoadTexture("./myNumbersTexture.png");
+
+
+    const char* pStyleFileName = styleFileName;
+    if (!ImGui::LoadStyle(pStyleFileName,ImGui::GetStyle()))   {
+        printf("Warning: \"%s\" not present.\n",pStyleFileName);fflush(stdout);
+        ImGui::ResetStyle(ImGuiStyle_Gray);
+    }
+
+// We might just choose one predefined style:
+//ImGui::ResetStyle(ImGuiStyle_Gray,ImGui::GetStyle());
+
+// This is something that does not work properly with all the addons:
+//ImGui::GetIO().NavFlags |= ImGuiNavFlags_EnableKeyboard;
+}
+void ResizeGL(int /*w*/,int /*h*/)	// Mandatory
+{
+
+}
+void DestroyGL()    // Mandatory
+{
+    // if (myImageTextureId2) {ImImpl_FreeTexture(myImageTextureId2);}
+}
+
+void showDebugWindow()
+{
+    static float f = 0.0f;
+
+    ImGui::Text("Hello, world!");
+    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+    // ImGui::ColorEdit3("clear color", (float*)&clear_color);
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+}
 
 #include "gui.h"
-
-int main(int argc, char **argv)
+void DrawGL()	// Mandatory
 {
-    QGuiApplication app(argc, argv);
+    static Gui gui;
+    gui.frame();
+    // ImGui::Render();
+}
 
-    QSurfaceFormat fmt;
-    fmt.setDepthBufferSize(24);
-    if (QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL) {
-        fmt.setVersion(3, 2);
-        fmt.setProfile(QSurfaceFormat::CoreProfile);
-    }
-    QSurfaceFormat::setDefaultFormat(fmt);
+//#   define USE_ADVANCED_SETUP   // in-file definition (see below). For now it just adds custom fonts and different FPS settings (please read below).
 
-    ImguiQt3DWindow w;
-    w.setFormat(fmt);
 
-    Gui gui;
-    ImguiManager guiMgr;
-    gui.setManager(&guiMgr);
-    guiMgr.setFrameFunc(std::bind(&Gui::frame, &gui, std::placeholders::_1));
-    guiMgr.setInputEventSource(&w);
-    guiMgr.setOutputInfoFunc([&w]() {
-        ImguiManager::OutputInfo outputInfo;
-        outputInfo.size = w.size();
-        outputInfo.dpr = w.devicePixelRatio();
-        outputInfo.guiTag = w.guiTag();
-        outputInfo.activeGuiTag = w.activeGuiTag();
-        outputInfo.guiTechniqueFilterKey = w.guiTechniqueFilterKey();
-        return outputInfo;
-    });
-    // uncomment to start with gui hidden
-    //guiMgr.setEnabled(false);
+// Application code
+#ifndef IMGUI_USE_AUTO_BINDING_WINDOWS  // IMGUI_USE_AUTO_ definitions get defined automatically (e.g. do NOT touch them!)
+int main(int argc, char** argv)
+#else //IMGUI_USE_AUTO_BINDING_WINDOWS
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine, int iCmdShow)
+#endif //IMGUI_USE_AUTO_BINDING_WINDOWS
+{
 
-    w.setCreateSceneFunc([&guiMgr](Qt3DCore::QEntity *parent) {
-        guiMgr.initialize(parent);
+    //#ifdef YES_IMGUIFREETYPE    // Testing only (to remove)
+    //ImGuiFreeType::DefaultRasterizationFlags = ImGuiFreeType::Bold|ImGuiFreeType::Oblique;
+    //#endif //YES_IMGUIFREETYPE
 
-        Qt3DCore::QEntity *cube = new Qt3DCore::QEntity(parent);
-        Qt3DExtras::QCuboidMesh *cubeGeom = new Qt3DExtras::QCuboidMesh;
-        cubeGeom->setXExtent(2);
-        cubeGeom->setYExtent(2);
-        cubeGeom->setZExtent(2);
-        Qt3DCore::QTransform *cubeTrans = new Qt3DCore::QTransform;
-        cubeTrans->setTranslation(QVector3D(18, 5, -10));
-        Qt3DExtras::QPhongMaterial *cubeMat = new Qt3DExtras::QPhongMaterial;
-        cube->addComponent(cubeGeom);
-        cube->addComponent(cubeTrans);
-        cube->addComponent(cubeMat);
+#   ifndef USE_ADVANCED_SETUP
 
-        Qt3DCore::QEntity *cube2 = new Qt3DCore::QEntity(parent);
-        // or, why have a cube when we can have a torus instead
-        Qt3DExtras::QTorusMesh *cubeGeom2 = new Qt3DExtras::QTorusMesh;
-        cubeGeom2->setRadius(5);
-        cubeGeom2->setMinorRadius(1);
-        cubeGeom2->setRings(100);
-        cubeGeom2->setSlices(20);
-        Qt3DCore::QTransform *cubeTrans2 = new Qt3DCore::QTransform;
-        cubeTrans2->setTranslation(QVector3D(-15, -4, -20));
-        cube2->addComponent(cubeGeom2);
-        cube2->addComponent(cubeTrans2);
-        cube2->addComponent(cubeMat);
+    //ImImpl_InitParams::DefaultFontSizeOverrideInPixels = 26.f;   // Fast method to override the size of the default font (13.f)
 
-        auto rotAnim = [](QObject *obj, const QByteArray &name, float start, float end, int duration) {
-            QPropertyAnimation *anim = new QPropertyAnimation(obj, name);
-            anim->setStartValue(start);
-            anim->setEndValue(end);
-            anim->setDuration(duration);
-            anim->setLoopCount(-1);
-            anim->start();
+    // Basic
+#   ifndef IMGUI_USE_AUTO_BINDING_WINDOWS  // IMGUI_USE_AUTO_ definitions get defined automatically (e.g. do NOT touch them!)
+    ImImpl_Main(NULL,argc,argv);
+#   else //IMGUI_USE_AUTO_BINDING_WINDOWS
+    ImImpl_WinMain(NULL,hInstance,hPrevInstance,lpCmdLine,iCmdShow);
+#   endif //IMGUI_USE_AUTO_BINDING_WINDOWS
+
+
+#   else //USE_ADVANCED_SETUP
+    // Advanced
+        static const ImWchar ranges[] =
+        {
+            0x0020, 0x00FF, // Basic Latin + Latin Supplement
+            0x20AC, 0x20AC,	// €
+            0x2122, 0x2122,	// ™
+            0x2196, 0x2196, // ↖
+            0x21D6, 0x21D6, // ⇖
+            0x2B01, 0x2B01, // ⬁
+            0x2B09, 0x2B09, // ⬉
+            0x2921, 0x2922, // ⤡ ⤢
+            0x263A, 0x263A, // ☺
+            0x266A, 0x266A, // ♪
+            0
         };
-        rotAnim(cubeTrans, "rotationX", 0.0f, 360.0f, 5000);
-        rotAnim(cubeTrans2, "rotationY", 0.0f, 360.0f, 5000);
+    const float fontSizeInPixels = 18.f;
+                                  //-40.f; // If < 0, it's the number of lines that fit the whole screen (but without any kind of vertical spacing)
+    ImFontConfig cfg;
+#   ifdef IMIMPL_BUILD_SDF
+    cfg.OversampleH=cfg.OversampleV=1;    // signed-distance-field fonts work better when these values are equal (default: 3,1 are not equal)
+    //ImImpl_SdfShaderSetParams(ImVec4(0.460f,0.365f,0.120f,0.04f));	// (optional) Sets sdf params
+#   endif //IMIMPL_BUILD_SDF
 
-        // an entity that toggles the gui when pressed.
-        // replace with a QText2DEntity some day when it actually works. in the meantime a sphere will do.
-        Qt3DCore::QEntity *toggleText = new Qt3DCore::QEntity(parent);
-        Qt3DExtras::QSphereMesh *toggleTextGeom = new Qt3DExtras::QSphereMesh;
-        Qt3DCore::QTransform *toggleTextTrans = new Qt3DCore::QTransform;
-        toggleTextTrans->setTranslation(QVector3D(-14, 7, -5));
-        toggleTextTrans->setScale(0.5f);
-        Qt3DExtras::QPhongMaterial *toggleTextMat = new Qt3DExtras::QPhongMaterial;
-        toggleTextMat->setDiffuse(guiMgr.isEnabled() ? Qt::green : Qt::red);
-        toggleText->addComponent(toggleTextGeom);
-        toggleText->addComponent(toggleTextTrans);
-        toggleText->addComponent(toggleTextMat);
-        Qt3DRender::QObjectPicker *toggleTextPicker = new Qt3DRender::QObjectPicker;
-        QObject::connect(toggleTextPicker, &Qt3DRender::QObjectPicker::pressed, [toggleTextMat, &guiMgr](Qt3DRender::QPickEvent *) {
-            guiMgr.setEnabled(!guiMgr.isEnabled());
-            toggleTextMat->setDiffuse(guiMgr.isEnabled() ? Qt::green : Qt::red);
-        });
-        toggleText->addComponent(toggleTextPicker);
-    });
+    // These lines load an embedded font (with no compression).
+    const unsigned char ttfMemory[] =
+#   include "./fonts/DejaVuSerifCondensed-Bold.ttf.inl"
+//#   include "./fonts/DroidSerif-Bold.ttf.inl"
+;   // tip: If you have signed chars (e.g. const char ttfMemory[] = ...) you can still cast ttfMemory as (const unsigned char*) later.
 
-    w.resize(1280, 720);
-    w.show();
+    ImImpl_InitParams gImGuiInitParams(
+    -1,-1,NULL,                                                         // optional window width, height, title
+    //------------------------------------------------------------------------------------------------------------------------
+    NULL,
+    //"./fonts/DejaVuSerifCondensed-Bold.ttf",                          // optional custom font from file (main custom font)
+    //------------------------------------------------------------------------------------------------------------------------
+    //NULL,0,
+    (const unsigned char*) ttfMemory,sizeof(ttfMemory)/sizeof(ttfMemory[0]),    // optional custom font from memory (secondary custom font) WARNING (licensing problem): e.g. embedding a GPL font in your code can make your code GPL as well.
+    //------------------------------------------------------------------------------------------------------------------------
+    fontSizeInPixels,
+    &ranges[0],
+    &cfg,                                                               // optional ImFontConfig* (useful for merging glyph to the default font, according to ImGui)
+    false                                                               // true = addDefaultImGuiFontAsFontZero
+    );
+    // IMPORTANT: If you need to add more than one TTF file,
+    // or you need to load embedded font data encoded with a different ImImpl_InitParams::Compression type,
+    // there's a second ctr that takes a ImVector<ImImpl_InitParams::FontData> (see imguibindings.h).
+    // For a single compressed font loaded from an extern file, the first constructor should work (the file extension is used to detect the compression type).
+    // In all cases, to use compressed/encoded data some additional definitions are necessary (for example: YES_IMGUIBZ2 and/or YES_IMGUISTRINGIFIER and/or IMGUI_USE_ZLIB).
 
-    return app.exec();
+    // Here are some optional tweaking of the desired FPS settings (they can be changed at runtime if necessary, but through some global values defined in imguibindinds.h)
+    gImGuiInitParams.gFpsClampInsideImGui = 30.0f;  // Optional Max allowed FPS (!=0, default -1 => unclamped). Useful for editors and to save GPU and CPU power.
+    gImGuiInitParams.gFpsDynamicInsideImGui = false; // If true when inside ImGui, the FPS is not constant (at gFpsClampInsideImGui), but goes from a very low minimum value to gFpsClampInsideImGui dynamically. Useful for editors and to save GPU and CPU power.
+    gImGuiInitParams.gFpsClampOutsideImGui = 10.f;  // Optional Max allowed FPS (!=0, default -1 => unclamped). Useful for setting a different FPS for your main rendering.
+
+//#   define TEST_IMAGE_GLYPHS    // Experimental (currently it works only with user glyphs from uniformly sized tiles in images (or from a whole image) (good for image icons), but we could extend the code in the future if requested to support font glyphs of different widths)
+#   ifdef TEST_IMAGE_GLYPHS
+    // 'S','P','F'
+    ImImpl_InitParams::CustomFontGlyph::ImageData imageData(512,512,"Tile8x8.png",8,8); // The image we want to use for our glyphs
+    gImGuiInitParams.customFontGlyphs.push_back(ImImpl_InitParams::CustomFontGlyph(0,'S',imageData, 9));
+    gImGuiInitParams.customFontGlyphs.push_back(ImImpl_InitParams::CustomFontGlyph(0,'P',imageData,10));
+    gImGuiInitParams.customFontGlyphs.push_back(ImImpl_InitParams::CustomFontGlyph(0,'F',imageData,11));
+
+    // Numbers from 1 to 9
+    ImImpl_InitParams::CustomFontGlyph::ImageData imageData2(128,128,"myNumbersTexture.png",3,3); // The image we want to use for our glyphs
+    for (int i=0;i<10;i++)   {
+        gImGuiInitParams.customFontGlyphs.push_back(ImImpl_InitParams::CustomFontGlyph(0,(ImWchar)('1'+i),imageData2,i,0.f));   // Here we use a zero advance_x_delta (default is 1.0f)
+    }
+
+    // Not sure how to specify an ImWchar using a custom definition (like FontAwesome in main2.cpp)...
+#   endif //TEST_IMAGE_GLYPHS
+
+
+#   ifndef IMGUI_USE_AUTO_BINDING_WINDOWS  // IMGUI_USE_AUTO_ definitions get defined automatically (e.g. do NOT touch them!)
+    ImImpl_Main(&gImGuiInitParams,argc,argv);
+#   else //IMGUI_USE_AUTO_BINDING_WINDOWS
+    ImImpl_WinMain(&gImGuiInitParams,hInstance,hPrevInstance,lpCmdLine,iCmdShow);
+#   endif //IMGUI_USE_AUTO_BINDING_WINDOWS
+
+#   endif //USE_ADVANCED_SETUP
+
+    // todo: 这里没起作用，前面阻塞循环了，for QT Signal/Slot
+    QCoreApplication app(argc, argv);
+	return app.exec();
 }
